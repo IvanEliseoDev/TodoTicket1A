@@ -1,7 +1,7 @@
 
 export const config = {
     db:{
-        DB_URI: "mongodb://localhost:27017"
+        DB_URI: "mongodb://localhost:27017/todoTicket1A"
     },
     jwt: {
         secret: "MiSecretKey19212"
