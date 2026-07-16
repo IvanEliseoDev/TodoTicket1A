@@ -1,0 +1,25 @@
+import { model, Schema } from "mongoose";
+
+export const clientSchema = new Schema({
+    name:{
+        type:String
+    },
+    email:{
+        type:String
+    },
+    password:{
+        type:String
+    },
+    isVerified:{
+        type:Boolean
+    },
+    loginAttempts:{
+        type:Number,
+        default: 0
+    },
+    timeOut:{
+        type:String
+    },
+})
+
+export const clientModel = model("Client", clientSchema)
