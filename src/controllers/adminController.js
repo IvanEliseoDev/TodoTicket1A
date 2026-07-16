@@ -1,36 +1,36 @@
-import { clientModel } from "../models/clientModel.js"
 import bcryt from "bcrypt"
 import crypto from "crypto"
 import jwt from "jsonwebtoken"
 import { config } from "../config/config.js"
 import nodemailer from "nodemailer"
+import { adminModel } from "../models/adminModel.js"
 
 
-export const clientController = {
+export const AdminController = {
 
-    getAllClients: async(req, res) => {
+    getAllAdmins: async(req, res) => {
         try {
-            const clients = await clientModel.find()
-            if(!clients) return res.status(404).json({status:404, message:"Clients has not found", data: null})
-            return res.status(200).json({status:200, message:"Clients has found", data: clients})
+            const clients = await adminModel.find()
+            if(!clients) return res.status(404).json({status:404, message:"Admins has not found", data: null})
+            return res.status(200).json({status:200, message:"Admins has found", data: clients})
         } catch (error) {
             console.log(error)
             return res.status(500).json({status:500, message:"Internal Server Error - Check server logs", data: null})
         }
     },
 
-    registerClient: async(req, res) => {
+    registerAdmin: async(req, res) => {
         try {
-            const clientReq = req.body
-            const clientEmail = clientReq
-            if(!clientReq) return res.status(400).json({status:400, message:"Bad Request - Client is not null", data: null})
-            const existClient = await clientModel.findOne({email: clientEmail})
-            if(existClient) return res.status(400).json({status:400, message:"Bad Request - Client is alredy exist", data: null})
+            const admiReq = req.body
+            const adminEmail = admiReq
+            if(!admiReq) return res.status(400).json({status:400, message:"Bad Request - Admin is not null", data: null})
+            const existAdmin = await adminModel.findOne({email: adminEmail})
+            if(existAdmin) return res.status(400).json({status:400, message:"Bad Request - Admin is alredy exist", data: null})
             const genericPassword =  "9102eu7"
             const passwordHashed = await bcryt.hash(genericPassword, 10)
             const verificationCode = crypto.randomBytes(3).toString("hex")
             const tokenCode = jwt.sign(
-                {clientEmail, verificationCode},
+                {adminEmail, verificationCode},
                 config.jwt.secret,
                 {expiresIn: "15m"}
             )
@@ -49,15 +49,15 @@ export const clientController = {
             )
             const mailOpt = {
                 from: config.user.email,
-                to: clientEmail,
+                to: adminEmail,
                 subject: "Verification Code: " + verificationCode
             }
             await transporter.sendMail(mailOpt)
-            const newClient = new clientModel()
-            newClient.password = passwordHashed
-            newClient.isVerified = false
-            const clientSaved = await newClient.save()
-            return res.status(201).json({status: 201, message:"Client Register has successfully", data: clientSaved})
+            const newAdmin = new adminModel()
+            newAdmin.password = passwordHashed
+            newAdmin.isVerified = false
+            const adminSaved = await newAdmin.save()
+            return res.status(201).json({status: 201, message:"Admin Register has successfully", data: adminSaved})
         } catch (error) {
             console.log(error)
             return res.status(500).json({status:500, message:"Internal Server Error - Check server logs", data: null})

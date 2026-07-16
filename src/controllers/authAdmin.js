@@ -1,32 +1,32 @@
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt"
 import { config } from "../config/config.js";
-import { clientModel } from "../models/clientModel.js";
+import { adminModel } from "../models/adminModel.js";
 
-export const authClientController = {
+export const authAdminController = {
   verifyCode: async (req, res) => {
     try {
       const { verificationCodeReq } = req.body;
       const token = req.cookies.verificationToken;
       const decoded = jwt.verify(token, config.jwt.secret);
       console.log({ decoded });
-      const clientDecoded = decoded;
-      console.log({ clientDecoded });
-      if (verificationCodeReq !== clientDecoded.code) {
+      const adminDecoded = decoded;
+      console.log({ adminDecoded });
+      if (verificationCodeReq !== adminDecoded.code) {
         return res
           .status(400)
           .json({ status: 400, message: "this code is not same", data: null });
       }
-      const newClient = new clientModel();
-      newClient.isVerified = true;
-      const clientSaved = await newClient.save();
+      const newAdmin = new adminModel();
+      newAdmin.isVerified = true;
+      const admintSaved = await newAdmin.save();
       res.clearCookie("verificationToken");
       res
         .status(200)
         .json({
           status: 200,
           message: "Verify code is same",
-          data: clientSaved,
+          data: admintSaved,
         });
     } catch (error) {
         console.log(error)
@@ -34,31 +34,31 @@ export const authClientController = {
     }
   },
 
-  loginClient: async(req, res) => {
+  loginAdmin: async(req, res) => {
     try {
       const {email, password} = req.boy
-      const client = await clientModel.findOne({email})
-      if(!client) return res.status(404).json({status:404, message:"Client not exist in system", data: null})
-      if(client.timeOut && client.timeOut > Date.now()) return res.status(401).json({status: 401, message:"Access not pass", data: null}) 
-      const isMatch = await bcrypt.compare(password, client.password)
+      const admin = await adminModel.findOne({email})
+      if(!admin) return res.status(404).json({status:404, message:"Admin not exist in system", data: null})
+      if(admin.timeOut && admin.timeOut > Date.now()) return res.status(401).json({status: 401, message:"Access not pass", data: null}) 
+      const isMatch = await bcrypt.compare(password, admin.password)
       if(!isMatch) {
-        if(client.loginAttempts >= 5) {
-          client.timeOut = Date.now() + 10 *60 * 1000
-          client.loginAttempts = 0
+        if(admin.loginAttempts >= 5) {
+          admin.timeOut = Date.now() + 10 *60 * 1000
+          admin.loginAttempts = 0
         }
-        await client.save()
+        await admin.save()
         return res.status(401).json({status: 401, message:"Password is not correct", data: null})
       }
-      client.loginAttempts = 0 
-      client.timeOut = undefined
-      const clientSaved = await client.save()
+      admin.loginAttempts = 0 
+      admin.timeOut = undefined
+      const adminSaved = await admin.save()
       const token = jwt.sign(
-        {email: client.email, userType: "CLIENTE"},
+        {email: admin.email, userType: "ADMIN"},
         config.jwt.secret,
         {expiresIn: "30d"}
       )
       res.cookie("authCookie", token, {maxAge: 15 * 60 * 1000})
-      return res.status(200).json({status:200, message:"login has successfully", data: clientSaved})
+      return res.status(200).json({status:200, message:"login has successfully", data: adminSaved})
     } catch (error) {
       console.log(error)
       return res.status(500).json({status:500, message:"Internal Server Error - Check server logs", data: null})
