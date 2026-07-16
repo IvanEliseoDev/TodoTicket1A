@@ -11,7 +11,8 @@ export const adminSchema = new Schema({
         type:String
     },
     isVerified:{
-        type:Boolean
+        type:Boolean,
+        default: false
     },
     loginAttempts:{
         type:Number,

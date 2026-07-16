@@ -7,12 +7,14 @@ export const authClientController = {
   verifyCode: async (req, res) => {
     try {
       const { verificationCodeReq } = req.body;
-      const token = req.cookies.verificationToken;
+      const token = req.cookies.VerificationToken;
+      console.log(token)
       const decoded = jwt.verify(token, config.jwt.secret);
       console.log({ decoded });
       const clientDecoded = decoded;
       console.log({ clientDecoded });
-      if (verificationCodeReq !== clientDecoded.code) {
+      console.log({verificationCodeReq, verificationCode: clientDecoded.verificationCode})
+      if (verificationCodeReq !== clientDecoded.verificationCode) {
         return res
           .status(400)
           .json({ status: 400, message: "this code is not same", data: null });
@@ -20,7 +22,7 @@ export const authClientController = {
       const newClient = new clientModel();
       newClient.isVerified = true;
       const clientSaved = await newClient.save();
-      res.clearCookie("verificationToken");
+      res.clearCookie("VerificationToken");
       res
         .status(200)
         .json({
@@ -36,8 +38,10 @@ export const authClientController = {
 
   loginClient: async(req, res) => {
     try {
-      const {email, password} = req.boy
+      const {email, password} = req.body
+      console.log("emailrecivido", email , "password: ", password)
       const client = await clientModel.findOne({email})
+      console.log(client)
       if(!client) return res.status(404).json({status:404, message:"Client not exist in system", data: null})
       if(client.timeOut && client.timeOut > Date.now()) return res.status(401).json({status: 401, message:"Access not pass", data: null}) 
       const isMatch = await bcrypt.compare(password, client.password)

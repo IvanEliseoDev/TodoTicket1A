@@ -1,6 +1,6 @@
 import { model, Schema } from "mongoose";
 
-export const clientSchema = new Schema({
+const clientSchema = new Schema({
     name:{
         type:String
     },
@@ -11,7 +11,8 @@ export const clientSchema = new Schema({
         type:String
     },
     isVerified:{
-        type:Boolean
+        type:Boolean,
+        default: false
     },
     loginAttempts:{
         type:Number,

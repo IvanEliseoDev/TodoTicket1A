@@ -7,12 +7,13 @@ export const authAdminController = {
   verifyCode: async (req, res) => {
     try {
       const { verificationCodeReq } = req.body;
-      const token = req.cookies.verificationToken;
+      const token = req.cookies.VerificationToken;
       const decoded = jwt.verify(token, config.jwt.secret);
       console.log({ decoded });
       const adminDecoded = decoded;
       console.log({ adminDecoded });
-      if (verificationCodeReq !== adminDecoded.code) {
+      console.log({verificationCodeReq, verificationCode: adminDecoded.verificationCode})
+      if (verificationCodeReq !== adminDecoded.verificationCode) {
         return res
           .status(400)
           .json({ status: 400, message: "this code is not same", data: null });
@@ -20,7 +21,7 @@ export const authAdminController = {
       const newAdmin = new adminModel();
       newAdmin.isVerified = true;
       const admintSaved = await newAdmin.save();
-      res.clearCookie("verificationToken");
+      res.clearCookie("VerificationToken");
       res
         .status(200)
         .json({
@@ -36,7 +37,7 @@ export const authAdminController = {
 
   loginAdmin: async(req, res) => {
     try {
-      const {email, password} = req.boy
+      const {email, password} = req.body
       const admin = await adminModel.findOne({email})
       if(!admin) return res.status(404).json({status:404, message:"Admin not exist in system", data: null})
       if(admin.timeOut && admin.timeOut > Date.now()) return res.status(401).json({status: 401, message:"Access not pass", data: null}) 

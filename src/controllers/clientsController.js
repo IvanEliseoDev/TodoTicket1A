@@ -22,12 +22,11 @@ export const clientController = {
     registerClient: async(req, res) => {
         try {
             const clientReq = req.body
-            const clientEmail = clientReq
+            const clientEmail = clientReq.email
             if(!clientReq) return res.status(400).json({status:400, message:"Bad Request - Client is not null", data: null})
             const existClient = await clientModel.findOne({email: clientEmail})
             if(existClient) return res.status(400).json({status:400, message:"Bad Request - Client is alredy exist", data: null})
-            const genericPassword =  "9102eu7"
-            const passwordHashed = await bcryt.hash(genericPassword, 10)
+            const passwordHashed = await bcryt.hash(clientReq.password, 10)
             const verificationCode = crypto.randomBytes(3).toString("hex")
             const tokenCode = jwt.sign(
                 {clientEmail, verificationCode},
@@ -55,6 +54,7 @@ export const clientController = {
             await transporter.sendMail(mailOpt)
             const newClient = new clientModel()
             newClient.password = passwordHashed
+            newClient.email = clientEmail
             newClient.isVerified = false
             const clientSaved = await newClient.save()
             return res.status(201).json({status: 201, message:"Client Register has successfully", data: clientSaved})

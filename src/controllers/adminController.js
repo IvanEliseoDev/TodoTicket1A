@@ -10,9 +10,9 @@ export const AdminController = {
 
     getAllAdmins: async(req, res) => {
         try {
-            const clients = await adminModel.find()
-            if(!clients) return res.status(404).json({status:404, message:"Admins has not found", data: null})
-            return res.status(200).json({status:200, message:"Admins has found", data: clients})
+            const admins = await adminModel.find()
+            if(!admins) return res.status(404).json({status:404, message:"Admins has not found", data: null})
+            return res.status(200).json({status:200, message:"Admins has found", data: admins})
         } catch (error) {
             console.log(error)
             return res.status(500).json({status:500, message:"Internal Server Error - Check server logs", data: null})
@@ -22,12 +22,12 @@ export const AdminController = {
     registerAdmin: async(req, res) => {
         try {
             const admiReq = req.body
-            const adminEmail = admiReq
+            const adminEmail = admiReq.email
+            console.log({adminEmailReq: adminEmail})
             if(!admiReq) return res.status(400).json({status:400, message:"Bad Request - Admin is not null", data: null})
             const existAdmin = await adminModel.findOne({email: adminEmail})
             if(existAdmin) return res.status(400).json({status:400, message:"Bad Request - Admin is alredy exist", data: null})
-            const genericPassword =  "9102eu7"
-            const passwordHashed = await bcryt.hash(genericPassword, 10)
+            const passwordHashed = await bcryt.hash(admiReq.password, 10)
             const verificationCode = crypto.randomBytes(3).toString("hex")
             const tokenCode = jwt.sign(
                 {adminEmail, verificationCode},
@@ -53,7 +53,7 @@ export const AdminController = {
                 subject: "Verification Code: " + verificationCode
             }
             await transporter.sendMail(mailOpt)
-            const newAdmin = new adminModel()
+            const newAdmin = new adminModel(admiReq)
             newAdmin.password = passwordHashed
             newAdmin.isVerified = false
             const adminSaved = await newAdmin.save()
