@@ -31,7 +31,7 @@ export const saleTicketController = {
             const salesReq = req.body
             const id = req.params.id
             if(salesReq.quantity <= 0 ) return res.status(400).json({status: 400, message: "the quantity must not be less than zero", data:null})
-            const newSale = await saleTicketModel.findByIdAndUpdate(id, {salesReq}, {new: true})
+            const newSale = await saleTicketModel.findByIdAndUpdate(id, {...salesReq}, {new: true})
             return res.status(201).json({status:200, message:"sale updated has successfully", data: newSale})
         } catch (error) {
             console.log(error)
